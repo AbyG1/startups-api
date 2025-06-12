@@ -2,11 +2,14 @@ import express from 'express'
 import { apiRouter } from './routes/apiRoutes.js'
 import cors from 'cors'
 
-const PORT = 8000
+const PORT = process.env.PORT || 8444
 
 const app = express()
 
 app.use(cors())
+
+app.use(express.json())
+app.use(express.urlencoded({ extended :false}))
 
 app.use('/api', apiRouter)
 
