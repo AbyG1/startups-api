@@ -1,4 +1,4 @@
-import { startups } from "../data/data.js"
+import  startups  from "../data/data.js"
 
 
 
@@ -203,6 +203,32 @@ const updateData = (req,res) => {
 
 const deleteData = (req,res) => {
 
+    try{
+
+        const id = parseInt(req.params.id)
+
+        const startupIndex = startups.findIndex(startup => startup.id === id)
+      
+        if(startupIndex === -1){
+            return res.status(400).json({message: `The startup with id ${id} is not found`})
+        }
+
+        const deletedData = startups.splice(startupIndex,1) 
+
+
+        res.status(200).json({message: "Data successfully deleted",  deletedData})
+
+
+
+
+    } catch (error){
+    
+        res.status(500).json({message: `Internal server error`})
+        console.log(error.message)
+
+    }
+   
+
 
 
 
@@ -210,4 +236,4 @@ const deleteData = (req,res) => {
 
 
 
-export {addData, getDataByPathParams,getAllData,updateData}
+export {addData, getDataByPathParams,getAllData,updateData, deleteData}

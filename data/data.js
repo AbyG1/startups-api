@@ -1,4 +1,4 @@
-export const startups = [
+ const startups = [
   {
     id: 0,
     name: "NextGen Dynamics",
@@ -953,3 +953,6 @@ export const startups = [
     has_mvp: true,
   },
 ]
+
+
+export default startups
