@@ -2,7 +2,7 @@ import  startups  from "../data/data.js"
 
 
 
-const addData = (req,res) => {
+const addData = (req,res,next) => {
 
 
 
@@ -26,11 +26,9 @@ const addData = (req,res) => {
 
 
         if(!name || !industry || !founded || !country || !continent || is_seeking_funding === undefined || !has_mvp === undefined){
-            return res.status(400).json({
-        message:
-          "Missing required fields: name, industry, founded, country, continent, is_seeking_funding, has_mvp",
-      });
-    }
+           
+          throw new Error("Missing required fields: name, industry, founded, country, continent, is_seeking_funding, has_mvp",)
+        }
 
         const id = startups.length ? startups.length + 1 : 1
 
@@ -59,18 +57,24 @@ const addData = (req,res) => {
 
 
     } catch (error) {
-        return res.status(500).json({
-            message: "Server error while adding startup",
-            error: error.message,
-    });
+
+
+      if(error.message === "Missing required fields: name, industry, founded, country, continent, is_seeking_funding, has_mvp"){
+        error.status = 400
+      }
+       next(error)
+      
+       
   }
 };
 
 
 
-const getAllData = (req, res) => {
+const getAllData = (req, res, next) => {
 
-  let filteredData = startups
+  try{
+
+     let filteredData = startups
 
   const { industry, country, continent, is_seeking_funding, has_mvp } = req.query
 
@@ -106,29 +110,55 @@ const getAllData = (req, res) => {
 
   res.json(filteredData)
 
-}
 
 
-const getDataByPathParams = (req, res) => {
+  } catch(err){
 
-  const { field, term } = req.params
+      next(err)
 
-  const allowedFields = ['country', 'continent', 'industry']
-
-  if (!allowedFields.includes(field)) {
-    return res.status(400).json({ message: "Search field not allowed. Please use only country, continent, industry" })
   }
 
-  const filteredData = startups.filter(
-    startup => startup[field].toLowerCase() === term.toLowerCase()
-  )
+ 
 
-  res.json(filteredData)
 }
 
 
+const getDataByPathParams = (req, res, next) => {
 
-const updateData = (req,res) => {
+
+  try{
+
+     const { field, term } = req.params
+
+    const allowedFields = ['country', 'continent', 'industry']
+
+    if (!allowedFields.includes(field)) {
+      throw new Error("Search field not allowed. Please use only country, continent, industry")
+    }
+
+    const filteredData = startups.filter(
+      startup => startup[field].toLowerCase() === term.toLowerCase()
+    )
+
+    res.json(filteredData)
+  
+  } catch(error){
+
+      if(error.message === "Search field not allowed. Please use only country, continent, industry" ){
+        error.status = 400
+      }
+        next(error)
+      }
+
+  }
+
+  
+
+ 
+
+
+
+const updateData = (req,res,next) => {
 
 
 
@@ -141,8 +171,8 @@ const updateData = (req,res) => {
 
 
         if(startupIndex === -1){
-            console.log(startups.length, !startups.length)
-            return res.status(400).json({message: `The startup with the id ${id} doesnot exit`})
+            throw new Error('The startup with the id doesnot exit')
+        
         }
 
 
@@ -188,29 +218,35 @@ const updateData = (req,res) => {
     
     } catch(error) {
 
-        res.status(500).json({message: "Internal server error"})
-
+      if(error.message === 'The startup with the id doesnot exit'){
+        error.status = 404
+       
+      }
+        next(error)
+      
+       
     }
 
    
-
-
 
 
 }
 
 
 
-const deleteData = (req,res) => {
+const deleteData = (req,res,next) => {
 
     try{
 
         const id = parseInt(req.params.id)
 
         const startupIndex = startups.findIndex(startup => startup.id === id)
-      
+     
         if(startupIndex === -1){
-            return res.status(400).json({message: `The startup with id ${id} is not found`})
+      
+          throw new Error('The startup with the id doesnot exit')
+       
+        
         }
 
         const deletedData = startups.splice(startupIndex,1) 
@@ -222,17 +258,22 @@ const deleteData = (req,res) => {
 
 
     } catch (error){
-    
-        res.status(500).json({message: `Internal server error`})
-        console.log(error.message)
-
+      console.log(error)
+        if(error.message === 'The startup with the id doesnot exit'){
+          
+        error.status = 404
+      
+        }
+        next(error)
+      }
+      
     }
    
 
 
 
 
-}
+
 
 
 
